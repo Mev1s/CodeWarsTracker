@@ -4,10 +4,16 @@ from typing import Optional, List, Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-
+from parser import *
 from database import engine, SessionLocal
 
 app = FastAPI()
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 

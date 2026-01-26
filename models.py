@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -9,9 +9,8 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
-    name = Column(String)
-    telegram_id = Column(Integer, unique=True, nullable=True)
+    username_telegram = Column(String, unique=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=True)
 
 class UserStats(Base):
     __tablename__ = "user_stats"
@@ -20,7 +19,7 @@ class UserStats(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     followers = Column(Integer)
     allies = Column(Integer)
-    leaders_board = Column(Integer)
+    leaders_board = Column(String)
     Honor_percentile = Column(String)
     honor = Column(Integer)
     rank = Column(String)

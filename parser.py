@@ -4,7 +4,11 @@ import requests
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from models import Base, User, UserStats
 from database import engine, SessionLocal
+from schemas import User as DB_User, UserStatsBase as DB_UserStats
+
+Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
@@ -26,6 +30,14 @@ headers = {
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    try:
+        db = SessionLocal()
+        new_user = User(username_telegram=message.from_user.username, telegram_id=message.from_user.id)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        print(f"Error: {e}")
     bot.reply_to(message, "Привет, отправь мне никнейм своего аккауна codewars (/nick)")
 
 @bot.message_handler(commands=['nick'])
@@ -38,12 +50,13 @@ def send_link(message):
 def parse_html(link):
     htm = requests.get(link, headers)
     src = htm.text
+
     soup = BeautifulSoup(src, 'html.parser')
     stats = soup.find_all('div', class_='stat')
+
     for item in stats:
         statistic.append(item.get_text(strip=False))
-    return statistic
 
-print(parse_html("https://www.codewars.com/users/Mev1s"))
+    return statistic
 
 bot.infinity_polling()
