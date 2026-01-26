@@ -26,3 +26,9 @@ class UserStatsBase(BaseModel):
     total_completed: Annotated[int, Field(title="Total Completed")]
     language: Annotated[str, Field(title="LanguageProgramming")]
     saved_at: Annotated[str, Field(title="SavedAt_time")]
+
+class UserStats(UserStatsBase):
+    id: int
+
+    class Config:
+        orm_mode = True

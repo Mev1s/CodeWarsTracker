@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from models import Base, User, UserStats
 from database import engine, SessionLocal
-from schemas import User as DB_User, UserStatsBase as DB_UserStats
 
 Base.metadata.create_all(bind=engine)
 
@@ -38,13 +37,27 @@ def send_welcome(message):
         db.refresh(new_user)
     except Exception as e:
         print(f"Error: {e}")
+    finally:
+        db.close()
     bot.reply_to(message, "Привет, отправь мне никнейм своего аккауна codewars (/nick)")
 
 @bot.message_handler(commands=['nick'])
 def send_link(message):
-    global link, username
     username = message.text.split()[1:]
+
     link = f"https://www.codewars.com/users/{''.join(username)}" # create link
+    stats = parse_html(link)
+
+    user_stats = UserStats(followers=link[5])
+    try:
+        db = SessionLocal()
+
+
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        db.close()
+
     bot.reply_to(message, "Спасибо, теперь ты можешь свою статистику на сайте (/stats)")
 
 def parse_html(link):
@@ -58,5 +71,9 @@ def parse_html(link):
         statistic.append(item.get_text(strip=False))
 
     return statistic
+
+def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
+    text = ""
+    have_stats = {}
 
 bot.infinity_polling()
