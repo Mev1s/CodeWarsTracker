@@ -24,5 +24,4 @@ class UserStats(Base):
     honor = Column(Integer)
     rank = Column(String)
     total_completed = Column(Integer)
-    language = Column(String)
     saved_at = Column(DateTime, server_default=func.now())

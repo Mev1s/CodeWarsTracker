@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from models import Base, User, UserStats
 from database import engine, SessionLocal
 
-import numpy as np
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,15 +18,6 @@ def get_db():
         db.close()
 
 bot = telebot.TeleBot("8121349204:AAGq1oY3grcGVT1cik3gHNGqkRm1Qttu9Ho", parse_mode=None) # init token
-
-statistic = []
-
-st_accept = "text/html"
-st_useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_3_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15"
-headers = {
-   "Accept": st_accept,
-   "User-Agent": st_useragent
-}
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -50,8 +40,6 @@ def send_link(message):
     link = f"https://www.codewars.com/users/{''.join(username)}" # create link
     stats = parse_html(link) # get stats
     db_stats = stats_formating(stats)
-
-
 
 
     try:
