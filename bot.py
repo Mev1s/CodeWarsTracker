@@ -1,9 +1,5 @@
 import telebot
-from bs4 import BeautifulSoup
-import requests
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 from models import Base, User, UserStats
 from database import engine, SessionLocal
 
