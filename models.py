@@ -20,7 +20,7 @@ class UserStats(Base):
     followers = Column(Integer)
     allies = Column(Integer)
     leaders_board = Column(String)
-    Honor_percentile = Column(String)
+    honor_percentile = Column(String)
     honor = Column(Integer)
     rank = Column(String)
     total_completed = Column(Integer)
