@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from models import Base, User, UserStats
 from database import engine, SessionLocal
 
+from parser import parse_html, stats_formating
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -52,23 +54,5 @@ def send_link(message):
         db.close()
 
     bot.reply_to(message, "Спасибо, теперь ты можешь свою статистику на сайте (/stats)")
-
-def parse_html(link):
-    htm = requests.get(link, headers)
-    src = htm.text
-
-    soup = BeautifulSoup(src, 'html.parser')
-    stats = soup.find_all('div', class_='stat')
-
-    for item in stats:
-        statistic.append(item.get_text(strip=False))
-
-    return statistic
-
-def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
-    stats = [statistic[6:13]]
-    stats = stats[0]
-    print(stats)
-
 
 bot.infinity_polling()
