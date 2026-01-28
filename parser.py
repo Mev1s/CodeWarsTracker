@@ -34,7 +34,7 @@ def parse_html(link):
 
     return statistic
 
-def stats_formating(statistic, msg): # переводим инф-ию в нужный формат, хз пока как реализовать
+def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
     db = SessionLocal()
     stats = [statistic[6:13]]
     stats = stats[0]
