@@ -83,6 +83,9 @@ def send_stats(message):
                                         WHERE telegram_id = %s)
                        """, (message.from_user.id,))
         user = cursor.fetchone()
+        if not user:
+            bot.reply_to(message, "Сначало введите команду /nick")
+            return
         msg = (f"🙂 Followers: {user[0]}\n"
                f"😳 Allies: {user[1]}\n"
                f"📑 Leaders Board: {user[2]}\n"
