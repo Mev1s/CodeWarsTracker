@@ -1,7 +1,7 @@
 import telebot
 
 from models import Base, User, UserStats
-from database import engine, SessionLocal
+from database import engine, SessionLocal, db_add
 
 from parser import parse_html, stats_formating
 import psycopg2
@@ -33,9 +33,7 @@ def send_welcome(message):
     try:
         db = SessionLocal()
         new_user = User(username_telegram=message.from_user.username, telegram_id=message.from_user.id)
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        db_add(new_user)
     except Exception as e:
         print(f"Error: {e}")
     finally:
@@ -50,20 +48,22 @@ def send_link(message):
             bot.reply_to(message, "Сначала нужно использовать /start")
             return
 
-    username = message.text.split()[1:]
+    username = "".join(message.text.split()[1:])
 
     link = f"https://www.codewars.com/users/{''.join(username)}" # create link
+    cursor.execute("""
+                    UPDATE users SET username_codewars = %s
+                    WHERE telegram_id = %s
+    """, (username, message.from_user.id,))
+    conn.commit()
     stats = parse_html(link) # get stats
-    stats_dict = stats_formating(stats)
+    stats_dict = stats_formating(stats) # new format
     user_stats = UserStats(
         user_id=user.id
         , **stats_dict
     )
     try:
-        db = SessionLocal()
-        db.add(user_stats)
-        db.commit()
-        db.refresh(user_stats)
+        db_add(user_stats)
     except Exception as e:
         print(f"Error: {e}")
 
@@ -83,9 +83,6 @@ def send_stats(message):
                                         WHERE telegram_id = %s)
                        """, (message.from_user.id,))
         user = cursor.fetchone()
-        if not user:
-            bot.reply_to(message, "Сначало введите команду /nick")
-            return
         msg = (f"🙂 Followers: {user[0]}\n"
                f"😳 Allies: {user[1]}\n"
                f"📑 Leaders Board: {user[2]}\n"
@@ -107,4 +104,4 @@ def send_leaders(message):
             msg += f"{ind + 1}. {us} чести\n"
         bot.reply_to(message, msg)
 
-bot.infinity_polling()
+bot.infinity_polling(timeout=60, long_polling_timeout=60)

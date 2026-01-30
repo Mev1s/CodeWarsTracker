@@ -8,6 +8,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
+    username_codewars = Column(String, unique=True)
     username_telegram = Column(String, unique=True)
     telegram_id = Column(BigInteger, unique=True, nullable=True)
 

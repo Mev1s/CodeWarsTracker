@@ -17,4 +17,10 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
+def db_add(data):
+    db = SessionLocal()
+    db.add(data)
+    db.commit()
+    db.refresh(data)
+
 Base = declarative_base()
