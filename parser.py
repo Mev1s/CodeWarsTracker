@@ -6,13 +6,6 @@ from database import engine, SessionLocal
 
 Base.metadata.create_all(bind=engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 st_accept = "text/html"
 st_useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_3_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15"
 headers = {
@@ -35,7 +28,6 @@ def parse_html(link):
     return statistic
 
 def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
-    db = SessionLocal()
     stats = statistic[6:13]
     complited_stats = []
     for item in stats:

@@ -9,13 +9,6 @@ import psycopg2
 
 Base.metadata.create_all(bind=engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 conn = psycopg2.connect(
     dbname="codewars_tracker",
     user="postgres",
@@ -43,7 +36,10 @@ def send_welcome(message):
 @bot.message_handler(commands=['nick'])
 def send_link(message):
     with SessionLocal() as db:
-        user = db.query(User).filter(User.telegram_id == message.from_user.id).first()
+        cursor.execute("""
+                    SELECT telegram_id FROM users WHERE telegram_id = %s
+        """, (message.from_user.id,))
+        user = cursor.fetchone()
         if not user:
             bot.reply_to(message, "Сначала нужно использовать /start")
             return
@@ -51,19 +47,32 @@ def send_link(message):
     username = "".join(message.text.split()[1:])
 
     link = f"https://www.codewars.com/users/{username}" # create link
+
     cursor.execute("""
                     UPDATE users SET username_codewars = %s
                     WHERE telegram_id = %s
     """, (username, message.from_user.id,))
     conn.commit()
+
     stats = parse_html(link) # get stats
     stats_dict = stats_formating(stats) # new format
-    user_stats = UserStats(
-        user_id=user.id
-        , **stats_dict
-    )
+
+    cursor.execute("""
+            SELECT COUNT(user_id) FROM user_stats WHERE user_id = (SELECT id FROM users WHERE telegram_id = %s)
+                  """, (message.from_user.id,))
+    new_user = cursor.fetchone()
+
+    if new_user[0] > 1:
+        bot.reply_to(message, "Статистика уже есть, напиши /stats")
+        return 100
+
+    cursor.execute("""
+                    INSERT INTO user_stats (user_id, followers, allies, leaders_board, honor_percentile, honor, rank, total_completed)
+                    VALUES ((SELECT id FROM users WHERE telegram_id = %(user_id)s),
+                           %(followers)s, %(allies)s, %(leaders_board)s, %(honor_percentile)s, %(honor)s, %(rank)s, %(total_completed)s)
+    """, {**stats_dict, "user_id": message.from_user.id})
     try:
-        db_add(user_stats)
+        conn.commit()
     except Exception as e:
         print(f"Error: {e}")
 
@@ -76,6 +85,16 @@ def send_link(message):
 def send_stats(message):
     with SessionLocal() as db:
         cursor.execute("""
+                       SELECT telegram_id
+                       FROM users
+                       WHERE telegram_id = %s
+                       """, (message.from_user.id,))
+        user = cursor.fetchone()
+        if not user:
+            bot.reply_to(message, "Сначала нужно использовать /start")
+            return
+
+        cursor.execute("""
                         SELECT username_codewars FROM users WHERE telegram_id = %s
         """, (message.from_user.id,)) # parse nickname_codewars from db
         username = cursor.fetchone()
@@ -83,7 +102,7 @@ def send_stats(message):
             bot.reply_to(message, "Сначала нужно использовать /nick")
             return
 
-        stats = parse_html(f"https://www.codewars.com/users/{username[0]}")
+        stats = parse_html(f"https://www.codewars.com/users/{username[0]}") # parse statistic for request
         stats_dict = stats_formating(stats)
 
         cursor.execute(""" 
@@ -93,15 +112,16 @@ def send_stats(message):
                     WHERE user_id = (SELECT id 
                                      FROM users 
                                      WHERE telegram_id = %(telegram_id)s)
-        """, {**stats_dict, "telegram_id": message.from_user.id})
+        """, {**stats_dict, "telegram_id": message.from_user.id}) # update stats
         conn.commit()
+
         cursor.execute("""
                        SELECT followers, allies, leaders_board, honor_percentile, honor, rank, total_completed
                        FROM user_stats
                        WHERE user_id = (SELECT id
                                         FROM users
                                         WHERE telegram_id = %s)
-                       """, (message.from_user.id,))
+                       """, (message.from_user.id,)) # check stats
         user = cursor.fetchone()
 
         msg = (f"🙂 Followers: {user[0]}\n"
