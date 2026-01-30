@@ -36,8 +36,7 @@ def parse_html(link):
 
 def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
     db = SessionLocal()
-    stats = [statistic[6:13]]
-    stats = stats[0]
+    stats = statistic[6:13]
     complited_stats = []
     for item in stats:
         object_item = item.split(':')[-1]

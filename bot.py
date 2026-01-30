@@ -50,7 +50,7 @@ def send_link(message):
 
     username = "".join(message.text.split()[1:])
 
-    link = f"https://www.codewars.com/users/{''.join(username)}" # create link
+    link = f"https://www.codewars.com/users/{username}" # create link
     cursor.execute("""
                     UPDATE users SET username_codewars = %s
                     WHERE telegram_id = %s
@@ -76,6 +76,26 @@ def send_link(message):
 def send_stats(message):
     with SessionLocal() as db:
         cursor.execute("""
+                        SELECT username_codewars FROM users WHERE telegram_id = %s
+        """, (message.from_user.id,)) # parse nickname_codewars from db
+        username = cursor.fetchone()
+        if not username:
+            bot.reply_to(message, "Сначала нужно использовать /nick")
+            return
+
+        stats = parse_html(f"https://www.codewars.com/users/{username[0]}")
+        stats_dict = stats_formating(stats)
+
+        cursor.execute(""" 
+                    UPDATE user_stats
+                    SET followers = %(followers)s, allies = %(allies)s, rank = %(rank)s, honor = %(honor)s, 
+                                    leaders_board = %(leaders_board)s, honor_percentile = %(honor_percentile)s, total_completed = %(total_completed)s
+                    WHERE user_id = (SELECT id 
+                                     FROM users 
+                                     WHERE telegram_id = %(telegram_id)s)
+        """, {**stats_dict, "telegram_id": message.from_user.id})
+        conn.commit()
+        cursor.execute("""
                        SELECT followers, allies, leaders_board, honor_percentile, honor, rank, total_completed
                        FROM user_stats
                        WHERE user_id = (SELECT id
@@ -83,12 +103,14 @@ def send_stats(message):
                                         WHERE telegram_id = %s)
                        """, (message.from_user.id,))
         user = cursor.fetchone()
+
         msg = (f"🙂 Followers: {user[0]}\n"
                f"😳 Allies: {user[1]}\n"
                f"📑 Leaders Board: {user[2]}\n"
                f"📃 Honor Percentile: {user[3]}\n"
                f"🪄 Rank: {user[4]}\n"
                f"📔 Total Completed: {user[5]}")
+
         bot.reply_to(message, msg)
 
 @bot.message_handler(commands=['leaders'])
