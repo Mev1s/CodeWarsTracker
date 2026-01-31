@@ -102,10 +102,18 @@ def change_nick(message):
         """, (message.from_user.id,))
         user_id = cursor.fetchone()
         if not user_id:
-            bot.reply_to(message, "Никнейм не указан, введите /nick")
+            bot.reply_to(message, "Сначала нужно использовать /start")
             return
 
         new_nickname = "".join(message.text.split()[1:])
+        cursor.execute(""" 
+                        SELECT username_codewars FROM users WHERE telegram_id = %s
+        """, (message.from_user.id,))
+        old_nickname = cursor.fetchone()
+        if old_nickname[0] == new_nickname:
+            bot.reply_to(message, "Вы ввели тот же ник")
+            return
+
         link = f"https://www.codewars.com/users/{new_nickname}"
         stats = parse_html(link)  # get stats
         if not stats:
