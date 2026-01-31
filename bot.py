@@ -62,9 +62,9 @@ def send_link(message):
                   """, (message.from_user.id,))
     new_user = cursor.fetchone()
 
-    if new_user[0] > 1:
+    if new_user[0] == 1:
         bot.reply_to(message, "Статистика уже есть, напиши /stats")
-        return 100
+        return
 
     cursor.execute("""
                     INSERT INTO user_stats (user_id, followers, allies, leaders_board, honor_percentile, honor, rank, total_completed)
