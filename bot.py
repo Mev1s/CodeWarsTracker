@@ -33,6 +33,14 @@ def send_welcome(message):
         db.close()
     bot.reply_to(message, "Привет, отправь мне никнейм своего аккауна codewars (/nick)")
 
+@bot.message_handler(commands=['help'])
+def send_help(message):
+    bot.reply_to(message, f"/start - запустить бота\n"
+                               f"/nick Ник - отображать статистику аккаунта с этим ником\n"
+                               f"/stats - статистика\n"
+                               f"/change_nick Ник - изменить текущий никнейм\n"
+                               f"/leaders - отобразить топ 10 пользователей бота")
+
 @bot.message_handler(commands=['nick'])
 def send_link(message):
     with SessionLocal() as db:
@@ -142,8 +150,8 @@ def send_leaders(message):
         user = cursor.fetchall()
         msg = ""
         for ind, us in enumerate(user):
-            us = str(us).replace("'", '').strip('()').replace(',', ':')
-            msg += f"{ind + 1}. {us} чести\n"
+            us = str(us).replace("'", '').strip('()').replace(',', ':') # Nick, honor -> Nick: honor
+            msg += f"{ind + 1}. @{us} чести\n"
         bot.reply_to(message, msg)
 
 bot.infinity_polling(timeout=60, long_polling_timeout=60)
