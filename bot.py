@@ -1,3 +1,5 @@
+from http.client import HTTPException
+
 import telebot
 
 from models import Base, User, UserStats
@@ -88,6 +90,48 @@ def send_link(message):
         db.close()
 
     bot.reply_to(message, "Спасибо, теперь ты можешь свою статистику на сайте (/stats)")
+
+@bot.message_handler(commands=['change_nick'])
+def change_nick(message):
+    with SessionLocal() as db:
+        cursor.execute("""
+                        SELECT id FROM users WHERE telegram_id = %s
+        """, (message.from_user.id,))
+        user_id = cursor.fetchone()
+        if not user_id:
+            bot.reply_to(message, "Никнейм не указан, введите /nick")
+            return
+
+        new_nickname = "".join(message.text.split()[1:])
+        link = f"https://www.codewars.com/users/{new_nickname}"
+        stats = parse_html(link)  # get stats
+        stats_dict = stats_formating(stats)  # new format
+
+        cursor.execute(""" 
+                        UPDATE users SET username_codewars = %s WHERE telegram_id = %s
+        """, (new_nickname, message.from_user.id,))
+
+        cursor.execute(""" 
+                        DELETE FROM user_stats WHERE user_id = (SELECT id FROM users WHERE telegram_id = %s)
+        """, (message.from_user.id,))
+
+        cursor.execute("""
+                       INSERT INTO user_stats (user_id, followers, allies, leaders_board, honor_percentile, honor, rank,
+                                               total_completed)
+                       VALUES ((SELECT id FROM users WHERE telegram_id = %(user_id)s),
+                               %(followers)s, %(allies)s, %(leaders_board)s, %(honor_percentile)s, %(honor)s, %(rank)s,
+                               %(total_completed)s)
+                       """, {**stats_dict, "user_id": message.from_user.id})
+
+        try:
+            conn.commit()
+        except Exception as e:
+            print(f"Error: {e}")
+
+        finally:
+            db.close()
+
+        bot.reply_to(message, "Ник был изменен")
 
 @bot.message_handler(commands=['stats'])
 def send_stats(message):

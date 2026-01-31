@@ -37,6 +37,6 @@ def stats_formating(statistic): # переводим инф-ию в нужный
         "honor": int(complited_stats[3].replace(",", "")),  # '1,433' -> 1433
         "leaders_board": complited_stats[4],
         "honor_percentile": complited_stats[5],
-        "total_completed": int(complited_stats[6])
+        "total_completed": int(complited_stats[6].replace(",", ""))
     }
     return formatted
