@@ -65,6 +65,9 @@ def send_link(message):
     conn.commit()
 
     stats = parse_html(link) # get stats
+    if not stats:
+        bot.reply_to(message, "Такого никнейма нету")
+        return
     stats_dict = stats_formating(stats) # new format
 
     cursor.execute("""
@@ -105,6 +108,9 @@ def change_nick(message):
         new_nickname = "".join(message.text.split()[1:])
         link = f"https://www.codewars.com/users/{new_nickname}"
         stats = parse_html(link)  # get stats
+        if not stats:
+            bot.reply_to(message, "Такого никнейма нету")
+            return
         stats_dict = stats_formating(stats)  # new format
 
         cursor.execute(""" 

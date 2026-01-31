@@ -11,6 +11,8 @@ headers = {
 def parse_html(link):
     statistic = []
     htm = requests.get(link, headers)
+    if htm.status_code == 404:
+        return None
     src = htm.text
 
     soup = BeautifulSoup(src, 'html.parser')
@@ -18,7 +20,6 @@ def parse_html(link):
 
     for item in stats:
         statistic.append(item.get_text(strip=False))
-
     return statistic
 
 def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
