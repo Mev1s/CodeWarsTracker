@@ -8,10 +8,10 @@ headers = {
    "User-Agent": st_useragent
 }
 
-def parse_html(link):
+def parse_html(link: str) -> str: # parse the link
     statistic = []
     htm = requests.get(link, headers)
-    if htm.status_code == 404:
+    if htm.status_code == 404: # if there is no connection to the site
         return None
     src = htm.text
 
@@ -22,7 +22,7 @@ def parse_html(link):
         statistic.append(item.get_text(strip=False))
     return statistic
 
-def stats_formating(statistic): # переводим инф-ию в нужный формат, хз пока как реализовать
+def stats_formating(statistic: str) -> dict[str, str]: # convert raw data into a dict
     stats = statistic[6:13]
     complited_stats = []
     for item in stats:

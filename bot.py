@@ -1,5 +1,3 @@
-from http.client import HTTPException
-
 import telebot
 
 from models import Base, User, UserStats
@@ -21,7 +19,7 @@ conn = psycopg2.connect(
 
 cursor = conn.cursor()
 
-bot = telebot.TeleBot("8121349204:AAGq1oY3grcGVT1cik3gHNGqkRm1Qttu9Ho", parse_mode=None) # init token
+bot = telebot.TeleBot("token", parse_mode=None) # init token
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
